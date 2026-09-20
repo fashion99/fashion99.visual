@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Messages | Fashion99{% endblock %}
+{% block content %}
+<div class="section-heading"><h1>Messages</h1><a class="action-link" href="{% url 'messaging:compose' %}">Compose</a></div>
+<div class="message-list conversation-list">
+{% for item in conversations %}
+    <a class="message-row{% if item.unread %} unread{% endif %}" href="{% url 'messaging:detail' item.latest.pk %}"><span class="conversation-person"><strong>{{ item.user.username }}</strong>{% if item.unread %}<b>{{ item.unread }}</b>{% endif %}</span><span>{{ item.latest.subject|default:'No subject' }} · {{ item.latest.created_at|date:'M j, Y H:i' }}</span></a>
+{% empty %}
+    <div class="empty-state"><strong>No messages.</strong></div>
+{% endfor %}
+</div>
+{% endblock %}

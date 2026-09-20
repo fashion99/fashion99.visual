@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{% if user.role == 'admin' or user.is_superuser %}Admin{% else %}Staff{% endif %} dashboard</h1>
+<div class="dashboard-grid">
+	<div class="dashboard-stat"><span>Active products</span><strong>{{ active_products }}</strong></div>
+	<div class="dashboard-stat"><span>Total stock</span><strong>{{ total_stock }}</strong></div>
+	<div class="dashboard-stat"><span>Low stock</span><strong>{{ low_stock_products }}</strong></div>
+	<div class="dashboard-stat"><span>Unread messages</span><strong class="unread-count">{{ unread_messages }}</strong></div>
+</div>
+{% endblock %}

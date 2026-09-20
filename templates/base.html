@@ -1,0 +1,67 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Fashion99{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body class="site-shell{% if user.is_authenticated %} authenticated-shell{% endif %}">
+    <header class="site-header">
+        <a class="brand" href="{% url 'products:list' %}">
+            <span class="brand-mark">F</span>
+            <span>Fashion 99 POS</span>
+        </a>
+        {% if user.is_authenticated %}<button class="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false"><span></span><span></span><span></span><span class="sr-only">Open menu</span></button>{% endif %}
+        <nav class="site-nav" aria-label="Main navigation">
+        {% if user.is_authenticated %}
+            <span class="user-chip"><span class="user-avatar">{{ user.username|first|upper }}</span>{{ user.username }}</span>
+            <form id="logout-form" method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="nav-button" type="submit">Log out</button></form>
+        {% else %}
+            <a class="login-link" href="{% url 'accounts:login' %}">Staff login</a>
+        {% endif %}
+        </nav>
+    </header>
+    {% if user.is_authenticated %}
+    <div class="app-layout">
+        <aside class="app-sidebar" id="app-menu" aria-label="Shop navigation">
+            <a class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'dashboard:home' %}"><span>▦</span>Dashboard</a>
+            <a class="sidebar-link {% if request.resolver_match.url_name == 'list' %}active{% endif %}" href="{% url 'products:list' %}"><span>□</span>Products</a>
+            {% if user.is_admin_user or user.can_create_products %}<a class="sidebar-link {% if request.resolver_match.url_name == 'create' %}active{% endif %}" href="{% url 'products:create' %}"><span>＋</span>Add product</a>{% endif %}
+            {% if user.is_admin_user or user.can_use_messaging %}<a class="sidebar-link {% if request.resolver_match.app_name == 'messaging' %}active{% endif %}" href="{% url 'messaging:inbox' %}"><span>◌</span>Messages{% if unread_message_count %}<b class="unread-badge">{{ unread_message_count }}</b>{% endif %}</a>{% endif %}
+            {% if user.is_superuser or user.role == 'admin' %}<a class="sidebar-link {% if request.resolver_match.app_name == 'accounts' %}active{% endif %}" href="{% url 'accounts:accounts' %}"><span>◎</span>Accounts</a>{% endif %}
+        </aside>
+        <button class="menu-backdrop" type="button" aria-label="Close menu"></button>
+    {% endif %}
+    <main class="page-content">{% block content %}{% endblock %}</main>
+    {% if user.is_authenticated %}
+    </div>
+    {% endif %}
+    <script>
+        const menuToggle = document.querySelector('.menu-toggle');
+        const appMenu = document.getElementById('app-menu');
+        if (menuToggle && appMenu) {
+            menuToggle.addEventListener('click', () => {
+                const isOpen = appMenu.classList.toggle('is-open');
+                document.body.classList.toggle('menu-open', isOpen);
+                menuToggle.setAttribute('aria-expanded', isOpen);
+                menuToggle.querySelector('.sr-only').textContent = isOpen ? 'Close menu' : 'Open menu';
+            });
+            const closeMenu = () => {
+                appMenu.classList.remove('is-open');
+                document.body.classList.remove('menu-open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.querySelector('.sr-only').textContent = 'Open menu';
+            };
+            document.querySelector('.menu-backdrop')?.addEventListener('click', closeMenu);
+            appMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+            document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
+        }
+        const navigationEntry = performance.getEntriesByType('navigation')[0];
+        if (document.body.classList.contains('authenticated-shell') && navigationEntry?.type === 'reload') {
+            document.getElementById('logout-form')?.submit();
+        }
+    </script>
+</body>
+</html>

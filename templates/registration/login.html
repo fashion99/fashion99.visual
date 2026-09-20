@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="login-page">
+	<div class="login-panel">
+		<span class="login-kicker">POS access</span>
+		<h1>Welcome back</h1>
+		<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Log in</button></form>
+		<div class="login-links">
+			<a class="back-link" href="{% url 'products:list' %}" onclick="if (window.history.length > 1) { window.history.back(); return false; }">Back</a>
+			<a class="pos-link" href="https://fashion99.vercel.app/" target="_blank" rel="noopener noreferrer">POS</a>
+		</div>
+	</div>
+</section>
+{% endblock %}

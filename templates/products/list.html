@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Catalog | Fashion99{% endblock %}
+{% block content %}
+<section class="catalog-intro">
+    <h1>Products</h1>
+    <form class="search-form" method="get">
+        <label class="sr-only" for="search">Search products</label>
+        <span class="search-icon" aria-hidden="true">&#9906;</span>
+        <input id="search" name="q" value="{{ query }}" placeholder="Search by name or code" autocomplete="off">
+        <input type="hidden" name="status" value="{{ status }}">
+        <button type="submit">Search</button>
+    </form>
+</section>
+<section class="catalog-results" aria-live="polite">
+    {% include 'products/_results.html' %}
+</section>
+<script>
+    const searchForm = document.querySelector('.search-form');
+    const searchInput = document.getElementById('search');
+    const results = document.querySelector('.catalog-results');
+    let searchTimer;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            const params = new URLSearchParams(new FormData(searchForm));
+            fetch(`${window.location.pathname}?${params}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                .then(response => response.text())
+                .then(html => { results.innerHTML = html; })
+                .catch(() => { results.setAttribute('data-search-error', 'true'); });
+        }, 250);
+    });
+</script>
+{% endblock %}

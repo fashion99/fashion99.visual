@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Message | Fashion99{% endblock %}
+{% block content %}
+<div class="conversation-heading"><h1>{{ other_user.username }}</h1><a class="action-link" href="{% url 'messaging:reply' other_user.pk %}">Reply</a></div>
+<section class="conversation" id="conversation" aria-label="Conversation with {{ other_user.username }}">
+{% for item in conversation %}
+	<article class="chat-bubble{% if item.sender_id == user.id %} own{% endif %}"><p class="chat-subject">{{ item.subject|default:'No subject' }}</p><p>{{ item.body|linebreaksbr }}</p><time>{{ item.created_at|date:'M j, Y H:i' }}{% if item.sender_id == user.id %}<span class="read-receipt" aria-label="{% if item.is_read %}Read{% else %}Sent{% endif %}">{% if item.is_read %}✓✓{% else %}✓{% endif %}</span>{% endif %}</time><span class="message-actions">{% if item.sender_id == user.id and user.can_edit_own_messages or item.sender_id != user.id and user.can_edit_all_messages or user.is_admin_user %}<a href="{% url 'messaging:edit' item.pk %}">Edit</a>{% endif %}{% if item.sender_id == user.id and user.can_delete_own_messages or item.sender_id != user.id and user.can_delete_all_messages or user.is_admin_user %}<form method="post" action="{% url 'messaging:delete' item.pk %}">{% csrf_token %}<button type="submit">Delete</button></form>{% endif %}</span></article>
+{% endfor %}
+</section>
+<form method="post" class="reply-form">{% csrf_token %}{{ reply_form.recipient }}{{ reply_form.subject }}{{ reply_form.body }}<button type="submit">Send</button></form>
+<script>
+	const conversation = document.getElementById('conversation');
+	if (conversation) conversation.scrollTop = conversation.scrollHeight;
+</script>
+{% endblock %}

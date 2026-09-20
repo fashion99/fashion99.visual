@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} | Fashion99{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" enctype="multipart/form-data" class="manage-form">{% csrf_token %}{{ form.as_p }}
+{% if product %}
+<fieldset class="image-manager"><legend>Current images</legend><div class="editable-images">
+{% for image in product.images.all %}<label class="editable-image"><img src="{{ image.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}"><span><input type="checkbox" name="remove_images" value="{{ image.pk }}"> Remove image</span></label>{% empty %}<p>No images uploaded.</p>{% endfor %}
+</div></fieldset>
+{% endif %}
+<button type="submit">Save</button></form>
+{% endblock %}
