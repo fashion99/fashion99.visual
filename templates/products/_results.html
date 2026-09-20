@@ -3,49 +3,42 @@
 <div class="product-grid">
 {% for product in products %}
     <article class="product-card">
+        <div class="product-images">
+            {% for image in product.images.all %}
+                <img src="{{ image.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}">
+            {% empty %}
+                <div class="image-placeholder" aria-label="No product image">
+                    <span>F99</span>
+                </div>
+            {% endfor %}
+        </div>
 
 ```
-    <div class="product-images">
-        {% for image in product.images.all %}
-            <img src="{{ image.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}">
-        {% empty %}
-            <div class="image-placeholder" aria-label="No product image">
-                <span>F99</span>
-            </div>
-        {% endfor %}
-    </div>
-
     <div class="product-info">
         <p class="product-code">{{ product.code }}</p>
-
         <h3>{{ product.name }}</h3>
-
         <p class="product-price">{{ product.price }}</p>
-
-        <p class="product-stock">
-            {{ product.stock_quantity }} in stock
-        </p>
+        <p class="product-stock">{{ product.stock_quantity }} in stock</p>
 
         {% if user.is_authenticated %}
-        <div class="product-actions">
-            {% if user.is_admin_user or user.can_edit_products %}
-                <a class="product-action" href="{% url 'products:edit' product.pk %}">Edit</a>
-            {% endif %}
+            <div class="product-actions">
+                {% if user.is_admin_user or user.can_edit_products %}
+                    <a class="product-action" href="{% url 'products:edit' product.pk %}">Edit</a>
+                {% endif %}
 
-            {% if user.is_admin_user or user.can_manage_stock %}
-                <a class="product-action" href="{% url 'products:stock' product.pk %}">Stock</a>
-            {% endif %}
+                {% if user.is_admin_user or user.can_manage_stock %}
+                    <a class="product-action" href="{% url 'products:stock' product.pk %}">Stock</a>
+                {% endif %}
 
-            {% if user.is_admin_user or user.can_delete_products %}
-                <form method="post" action="{% url 'products:delete' product.pk %}">
-                    {% csrf_token %}
-                    <button class="product-action product-delete" type="submit">Delete</button>
-                </form>
-            {% endif %}
-        </div>
+                {% if user.is_admin_user or user.can_delete_products %}
+                    <form method="post" action="{% url 'products:delete' product.pk %}">
+                        {% csrf_token %}
+                        <button class="product-action product-delete" type="submit">Delete</button>
+                    </form>
+                {% endif %}
+            </div>
         {% endif %}
     </div>
-
 </article>
 ```
 
@@ -55,20 +48,16 @@
 </div>
 
 <style>
-/* ONLY PRODUCT CARD CONTENT — OUTER GRID IS UNCHANGED */
-
-.product-card {
-    overflow: hidden;
-}
+/* Keep the existing product grid and card placement unchanged.
+   Only standardize the image area. */
 
 .product-images {
     width: 100%;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 4 / 5;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8f8f8;
 }
 
 .product-images img {
@@ -78,85 +67,11 @@
     display: block;
 }
 
-.product-info {
-    padding: 12px 14px 14px;
-}
-
-.product-code {
-    margin: 0 0 4px;
-    font-size: 0.78rem;
-    opacity: 0.65;
-}
-
-.product-info h3 {
-    margin: 0 0 7px;
-    line-height: 1.25;
-    min-height: 2.5em;
-}
-
-.product-price {
-    margin: 0 0 5px;
-    font-weight: 700;
-}
-
-.product-stock {
-    margin: 0 0 12px;
-    font-size: 0.88rem;
-    opacity: 0.75;
-}
-
-.product-actions {
+.image-placeholder {
+    width: 100%;
+    height: 100%;
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-}
-
-.product-actions form {
-    margin: 0;
-}
-
-.product-action {
-    display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 34px;
-    padding: 6px 10px;
-    box-sizing: border-box;
-}
-
-/* PHONE */
-@media (max-width: 600px) {
-    .product-info {
-        padding: 9px 10px 11px;
-    }
-
-    .product-code {
-        font-size: 0.72rem;
-    }
-
-    .product-info h3 {
-        font-size: 0.95rem;
-        min-height: 2.4em;
-    }
-
-    .product-price {
-        font-size: 0.95rem;
-    }
-
-    .product-stock {
-        font-size: 0.78rem;
-        margin-bottom: 9px;
-    }
-
-    .product-actions {
-        gap: 4px;
-    }
-
-    .product-action {
-        min-height: 31px;
-        padding: 5px 8px;
-        font-size: 0.78rem;
-    }
 }
 </style>
