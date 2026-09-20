@@ -13,7 +13,7 @@
             {% endfor %}
         </div>
 
-```
+
     <div class="product-info">
         <p class="product-code">{{ product.code }}</p>
         <h3>{{ product.name }}</h3>
@@ -40,7 +40,7 @@
         {% endif %}
     </div>
 </article>
-```
+
 
 {% empty %} <div class="empty-state"> <strong>No products found.</strong> <span>Try a different name or product code.</span> </div>
 {% endfor %}
@@ -48,8 +48,12 @@
 </div>
 
 <style>
-/* Keep the existing product grid and card placement unchanged.
-   Only standardize the image area. */
+/* Keep the existing product grid and card placement.
+   Only standardize the image area and reduce card spacing. */
+
+.product-grid {
+    gap: 12px !important;
+}
 
 .product-images {
     width: 100%;
