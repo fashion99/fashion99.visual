@@ -1,11 +1,119 @@
-<div class="results-heading"><div class="product-filters"><a class="{% if status == 'active' %}selected{% endif %}" href="?status=active">Active</a>{% if user.is_authenticated %}<a class="{% if status == 'inactive' %}selected{% endif %}" href="?status=inactive">Inactive</a><a class="{% if status == 'all' %}selected{% endif %}" href="?status=all">All</a>{% endif %}</div><span>{{ products|length }} result{{ products|length|pluralize }}</span></div>
+<style>
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    .product-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .product-images {
+        width: 100%;
+        height: 260px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #f7f7f7;
+    }
+
+    .product-images img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+
+    .image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-actions {
+        margin-top: auto;
+    }
+
+    @media (max-width: 600px) {
+        .product-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .product-images {
+            height: 200px;
+        }
+    }
+</style>
+
+<div class="results-heading">
+    <div class="product-filters">
+        <a class="{% if status == 'active' %}selected{% endif %}" href="?status=active">Active</a>
+        {% if user.is_authenticated %}
+            <a class="{% if status == 'inactive' %}selected{% endif %}" href="?status=inactive">Inactive</a>
+            <a class="{% if status == 'all' %}selected{% endif %}" href="?status=all">All</a>
+        {% endif %}
+    </div>
+    <span>{{ products|length }} result{{ products|length|pluralize }}</span>
+</div>
+
 <div class="product-grid">
 {% for product in products %}
     <article class="product-card">
-        <div class="product-images">{% for image in product.images.all %}<img src="{{ image.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}">{% empty %}<div class="image-placeholder" aria-label="No product image"><span>F99</span></div>{% endfor %}</div>
-        <div class="product-info"><p class="product-code">{{ product.code }}</p><h3>{{ product.name }}</h3><p class="product-price">{{ product.price }}</p><p class="product-stock">{{ product.stock_quantity }} in stock</p>{% if user.is_authenticated %}<div class="product-actions">{% if user.is_admin_user or user.can_edit_products %}<a class="product-action" href="{% url 'products:edit' product.pk %}">Edit</a>{% endif %}{% if user.is_admin_user or user.can_manage_stock %}<a class="product-action" href="{% url 'products:stock' product.pk %}">Stock</a>{% endif %}{% if user.is_admin_user or user.can_delete_products %}<form method="post" action="{% url 'products:delete' product.pk %}">{% csrf_token %}<button class="product-action product-delete" type="submit">Delete</button></form>{% endif %}</div>{% endif %}</div>
-    </article>
-{% empty %}
-    <div class="empty-state"><strong>No products found.</strong><span>Try a different name or product code.</span></div>
+        <div class="product-images">
+            {% for image in product.images.all %}
+                <img src="{{ image.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}">
+            {% empty %}
+                <div class="image-placeholder" aria-label="No product image">
+                    <span>F99</span>
+                </div>
+            {% endfor %}
+        </div>
+
+```
+    <div class="product-info">
+        <p class="product-code">{{ product.code }}</p>
+        <h3>{{ product.name }}</h3>
+        <p class="product-price">{{ product.price }}</p>
+        <p class="product-stock">{{ product.stock_quantity }} in stock</p>
+
+        {% if user.is_authenticated %}
+            <div class="product-actions">
+                {% if user.is_admin_user or user.can_edit_products %}
+                    <a class="product-action" href="{% url 'products:edit' product.pk %}">Edit</a>
+                {% endif %}
+
+                {% if user.is_admin_user or user.can_manage_stock %}
+                    <a class="product-action" href="{% url 'products:stock' product.pk %}">Stock</a>
+                {% endif %}
+
+                {% if user.is_admin_user or user.can_delete_products %}
+                    <form method="post" action="{% url 'products:delete' product.pk %}">
+                        {% csrf_token %}
+                        <button class="product-action product-delete" type="submit">Delete</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</article>
+```
+
+{% empty %} <div class="empty-state"> <strong>No products found.</strong> <span>Try a different name or product code.</span> </div>
 {% endfor %}
+
 </div>
