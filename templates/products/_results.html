@@ -1,18 +1,11 @@
 
 <div class="results-heading">
     <div class="product-filters">
-        <a class="{% if status == 'active' %}selected{% endif %}" href="?status=active">
-            Active
-        </a>
+        <a class="{% if status == 'active' %}selected{% endif %}" href="?status=active">Active</a>
 
         {% if user.is_authenticated %}
-            <a class="{% if status == 'inactive' %}selected{% endif %}" href="?status=inactive">
-                Inactive
-            </a>
-
-            <a class="{% if status == 'all' %}selected{% endif %}" href="?status=all">
-                All
-            </a>
+            <a class="{% if status == 'inactive' %}selected{% endif %}" href="?status=inactive">Inactive</a>
+            <a class="{% if status == 'all' %}selected{% endif %}" href="?status=all">All</a>
         {% endif %}
     </div>
 
@@ -28,55 +21,68 @@
 
 <article class="product-card">
 
-    <!-- PRODUCT IMAGE GALLERY -->
-    <div class="product-images">
+    <!-- ================= PRODUCT IMAGES ================= -->
 
-        {% for image in product.images.all %}
+    <div class="product-gallery">
 
-            <img
-                src="{{ image.image.url }}"
-                alt="{{ product.name }} image {{ forloop.counter }}"
-                class="gallery-image {% if forloop.first %}gallery-active{% endif %}"
-            >
+        <div class="product-gallery-track">
 
-        {% empty %}
+            {% for image in product.images.all %}
 
-            <div class="image-placeholder">
-                <span>F99</span>
-            </div>
+                <div class="product-gallery-slide">
 
-        {% endfor %}
+                    <img
+                        src="{{ image.image.url }}"
+                        alt="{{ product.name }} image {{ forloop.counter }}"
+                    >
+
+                </div>
+
+            {% empty %}
+
+                <div class="product-gallery-slide">
+
+                    <div class="image-placeholder">
+                        <span>F99</span>
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
 
 
         {% if product.images.count > 1 %}
 
-            <!-- PREVIOUS -->
+            <!-- LEFT BUTTON -->
+
             <button
                 type="button"
-                class="gallery-btn gallery-prev"
+                class="gallery-arrow gallery-arrow-left"
+                onclick="scrollProductGallery(this, 'left')"
                 aria-label="Previous image"
-                onclick="changeProductImage(this, -1)"
             >
                 ‹
             </button>
 
 
-            <!-- NEXT -->
+            <!-- RIGHT BUTTON -->
+
             <button
                 type="button"
-                class="gallery-btn gallery-next"
+                class="gallery-arrow gallery-arrow-right"
+                onclick="scrollProductGallery(this, 'right')"
                 aria-label="Next image"
-                onclick="changeProductImage(this, 1)"
             >
                 ›
             </button>
 
 
-            <!-- COUNTER -->
-            <div class="gallery-counter">
-                <span class="gallery-current">1</span>
-                /
-                <span>{{ product.images.count }}</span>
+            <!-- IMAGE COUNT -->
+
+            <div class="gallery-count">
+                {{ product.images.count }} photos
             </div>
 
         {% endif %}
@@ -84,7 +90,8 @@
     </div>
 
 
-    <!-- PRODUCT INFORMATION -->
+    <!-- ================= PRODUCT INFORMATION ================= -->
+
     <div class="product-info">
 
         <p class="product-code">
@@ -106,49 +113,53 @@
 
         {% if user.is_authenticated %}
 
-        <div class="product-actions">
+            <div class="product-actions">
 
-            {% if user.is_admin_user or user.can_edit_products %}
-                <a
-                    class="product-action"
-                    href="{% url 'products:edit' product.pk %}"
-                >
-                    Edit
-                </a>
-            {% endif %}
+                {% if user.is_admin_user or user.can_edit_products %}
 
-
-            {% if user.is_admin_user or user.can_manage_stock %}
-                <a
-                    class="product-action"
-                    href="{% url 'products:stock' product.pk %}"
-                >
-                    Stock
-                </a>
-            {% endif %}
-
-
-            {% if user.is_admin_user or user.can_delete_products %}
-
-                <form
-                    method="post"
-                    action="{% url 'products:delete' product.pk %}"
-                >
-
-                    {% csrf_token %}
-
-                    <button
-                        class="product-action product-delete"
-                        type="submit"
+                    <a
+                        class="product-action"
+                        href="{% url 'products:edit' product.pk %}"
                     >
-                        Delete
-                    </button>
+                        Edit
+                    </a>
 
-                </form>
+                {% endif %}
 
-            {% endif %}
 
-        </div>
+                {% if user.is_admin_user or user.can_manage_stock %}
+
+                    <a
+                        class="product-action"
+                        href="{% url 'products:stock' product.pk %}"
+                    >
+                        Stock
+                    </a>
+
+                {% endif %}
+
+
+                {% if user.is_admin_user or user.can_delete_products %}
+
+                    <form
+                        method="post"
+                        action="{% url 'products:delete' product.pk %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            class="product-action product-delete"
+                            type="submit"
+                        >
+                            Delete
+                        </button>
+
+                    </form>
+
+                {% endif %}
+
+            </div>
 
         {% endif %}
 
@@ -159,10 +170,15 @@
 
 {% empty %}
 
-<div class="empty-state">
-    <strong>No products found.</strong>
-    <span>Try a different name or product code.</span>
-</div>
+    <div class="empty-state">
+
+        <strong>No products found.</strong>
+
+        <span>
+            Try a different name or product code.
+        </span>
+
+    </div>
 
 {% endfor %}
 
@@ -173,7 +189,7 @@
 <style>
 
 /* =========================================================
-   PRODUCT GRID
+   KEEP YOUR EXISTING GRID
    ========================================================= */
 
 .product-grid {
@@ -182,23 +198,21 @@
 
 
 /* =========================================================
-   IMAGE AREA
+   PRODUCT GALLERY
    ========================================================= */
 
-.product-images {
-
-    width: 100%;
-
-    /* Same height for every product */
-    aspect-ratio: 4 / 5;
+.product-gallery {
 
     position: relative;
 
-    overflow: hidden;
+    width: 100%;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /*
+     * Every product gets exactly the same image area.
+     */
+    aspect-ratio: 4 / 5;
+
+    overflow: hidden;
 
     background: #f8f8f8;
 
@@ -207,44 +221,114 @@
 
 
 /* =========================================================
-   IMAGES
-   IMPORTANT:
-   contain = NEVER CROP THE PRODUCT PHOTO
+   HORIZONTAL IMAGE TRACK
    ========================================================= */
 
-.gallery-image {
-
-    position: absolute;
-
-    inset: 0;
+.product-gallery-track {
 
     width: 100%;
     height: 100%;
 
-    /*
-       This keeps the COMPLETE image visible.
-       Nothing will be cut.
-    */
-    object-fit: contain;
+    display: flex;
+
+    overflow-x: auto;
+    overflow-y: hidden;
 
     /*
-       Small padding prevents the photo
-       from touching the edges.
-    */
-    padding: 6px;
+     * Each image snaps into position.
+     */
+    scroll-snap-type: x mandatory;
 
-    box-sizing: border-box;
+    scroll-behavior: smooth;
 
-    display: none;
+    /*
+     * Hide scrollbar.
+     */
+    scrollbar-width: none;
 
-    background: #f8f8f8;
+    -ms-overflow-style: none;
+
+    /*
+     * Enable touch scrolling.
+     */
+    -webkit-overflow-scrolling: touch;
+
+    overscroll-behavior-x: contain;
 }
 
 
-/* Only current image is visible */
+.product-gallery-track::-webkit-scrollbar {
+    display: none;
+}
 
-.gallery-image.gallery-active {
+
+/* =========================================================
+   EACH IMAGE SLIDE
+   ========================================================= */
+
+.product-gallery-slide {
+
+    /*
+     * IMPORTANT:
+     * Every slide occupies exactly the whole gallery.
+     */
+    flex: 0 0 100%;
+
+    width: 100%;
+    height: 100%;
+
+    scroll-snap-align: start;
+
+    scroll-snap-stop: always;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    /*
+     * Prevents image from being squeezed.
+     */
+    min-width: 100%;
+}
+
+
+/* =========================================================
+   ACTUAL PRODUCT IMAGE
+   ========================================================= */
+
+.product-gallery-slide img {
+
+    /*
+     * Never exceed the gallery.
+     */
+    max-width: 100%;
+    max-height: 100%;
+
+    width: auto;
+    height: auto;
+
+    /*
+     * MOST IMPORTANT:
+     *
+     * contain keeps the COMPLETE image visible.
+     * It does NOT crop.
+     * It does NOT zoom.
+     */
+    object-fit: contain;
+
     display: block;
+
+    /*
+     * Small breathing room around image.
+     */
+    padding: 8px;
+
+    box-sizing: border-box;
+
+    user-select: none;
+
+    -webkit-user-drag: none;
 }
 
 
@@ -258,10 +342,9 @@
     height: 100%;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
-
-    background: #f8f8f8;
 }
 
 
@@ -276,10 +359,10 @@
 
 
 /* =========================================================
-   GALLERY BUTTONS
+   LEFT / RIGHT BUTTONS
    ========================================================= */
 
-.gallery-btn {
+.gallery-arrow {
 
     position: absolute;
 
@@ -287,8 +370,8 @@
 
     transform: translateY(-50%);
 
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
 
     border: none;
 
@@ -296,9 +379,9 @@
 
     background: rgba(0, 0, 0, 0.55);
 
-    color: white;
+    color: #fff;
 
-    font-size: 25px;
+    font-size: 27px;
 
     line-height: 1;
 
@@ -309,59 +392,68 @@
 
     cursor: pointer;
 
-    z-index: 20;
+    z-index: 10;
+
+    opacity: 0;
 
     transition:
-        background 0.2s ease,
-        opacity 0.2s ease;
+        opacity 0.2s ease,
+        background 0.2s ease;
 }
 
 
-/* Previous */
+/* Show buttons when hovering */
 
-.gallery-prev {
+.product-gallery:hover .gallery-arrow {
+    opacity: 1;
+}
+
+
+/* LEFT */
+
+.gallery-arrow-left {
     left: 8px;
 }
 
 
-/* Next */
+/* RIGHT */
 
-.gallery-next {
+.gallery-arrow-right {
     right: 8px;
 }
 
 
 /* Hover */
 
-.gallery-btn:hover {
+.gallery-arrow:hover {
     background: rgba(0, 0, 0, 0.8);
 }
 
 
 /* =========================================================
-   IMAGE COUNTER
+   PHOTO COUNT
    ========================================================= */
 
-.gallery-counter {
+.gallery-count {
 
     position: absolute;
 
     right: 8px;
     bottom: 8px;
 
-    z-index: 20;
+    z-index: 10;
 
-    padding: 4px 9px;
+    padding: 4px 8px;
 
     border-radius: 12px;
 
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.55);
 
     color: white;
 
-    font-size: 12px;
+    font-size: 11px;
 
-    line-height: 1;
+    pointer-events: none;
 }
 
 
@@ -371,141 +463,142 @@
 
 @media (max-width: 600px) {
 
-    .product-images {
+    .product-gallery {
+
         aspect-ratio: 4 / 5;
+
         border-radius: 6px;
     }
 
 
-    .gallery-image {
-        padding: 5px;
+    .product-gallery-slide img {
+
+        padding: 6px;
     }
 
 
-    .gallery-btn {
+    .gallery-arrow {
 
         width: 30px;
         height: 30px;
 
-        font-size: 21px;
+        font-size: 22px;
+
+        /*
+         * Always visible on mobile
+         * because there is no hover.
+         */
+        opacity: 0.8;
     }
 
 
-    .gallery-prev {
-        left: 6px;
+    .gallery-arrow-left {
+        left: 5px;
     }
 
 
-    .gallery-next {
-        right: 6px;
+    .gallery-arrow-right {
+        right: 5px;
     }
 
 
-    .gallery-counter {
+    .gallery-count {
 
-        right: 6px;
-        bottom: 6px;
+        right: 5px;
+        bottom: 5px;
 
-        font-size: 11px;
-
-        padding: 4px 7px;
+        font-size: 10px;
     }
 
 }
 
+
+/* =========================================================
+   TOUCH DEVICES
+   ========================================================= */
+
+@media (hover: none) {
+
+    .gallery-arrow {
+        opacity: 0.8;
+    }
+
+}
 </style>
 
 
 
 <script>
 
-/* =========================================================
-   CHANGE PRODUCT IMAGE
-   ========================================================= */
+/*
+ * =========================================================
+ * PRODUCT IMAGE SCROLL
+ * =========================================================
+ *
+ * This does NOT hide/show images.
+ *
+ * It simply tells the browser to scroll the gallery.
+ * This makes it much more reliable.
+ */
 
-function changeProductImage(button, direction) {
+function scrollProductGallery(button, direction) {
 
     /*
-     * Find the gallery belonging to THIS product.
-     * This is important because every product has
-     * its own separate gallery.
+     * Find the gallery belonging to this product.
      */
 
-    const gallery = button.closest('.product-images');
+    const gallery = button.closest('.product-gallery');
 
     if (!gallery) {
         return;
     }
 
 
-    /* Get all images in this product */
+    /*
+     * Find the horizontal scrolling area.
+     */
 
-    const images =
-        gallery.querySelectorAll('.gallery-image');
+    const track =
+        gallery.querySelector('.product-gallery-track');
 
-
-    if (!images.length) {
+    if (!track) {
         return;
     }
 
 
-    /* Find current image */
+    /*
+     * The width of one image.
+     */
 
-    let currentIndex = 0;
+    const slide =
+        track.querySelector('.product-gallery-slide');
 
-    images.forEach(function(image, index) {
-
-        if (image.classList.contains('gallery-active')) {
-            currentIndex = index;
-        }
-
-    });
-
-
-    /* Calculate next image */
-
-    let newIndex =
-        currentIndex + direction;
-
-
-    /* Go from last → first */
-
-    if (newIndex >= images.length) {
-        newIndex = 0;
+    if (!slide) {
+        return;
     }
 
 
-    /* Go from first → last */
-
-    if (newIndex < 0) {
-        newIndex = images.length - 1;
-    }
+    const slideWidth =
+        slide.getBoundingClientRect().width;
 
 
-    /* Hide all images */
+    /*
+     * Scroll exactly one image.
+     */
 
-    images.forEach(function(image) {
+    if (direction === 'right') {
 
-        image.classList.remove('gallery-active');
+        track.scrollBy({
+            left: slideWidth,
+            behavior: 'smooth'
+        });
 
-    });
+    } else {
 
-
-    /* Show selected image */
-
-    images[newIndex].classList.add('gallery-active');
-
-
-    /* Update counter */
-
-    const counter =
-        gallery.querySelector('.gallery-current');
-
-
-    if (counter) {
-
-        counter.textContent =
-            newIndex + 1;
+        track.scrollBy({
+            left: -slideWidth,
+            behavior: 'smooth'
+        });
 
     }
 
@@ -514,15 +607,12 @@ function changeProductImage(button, direction) {
 </script>
 
 
-### What this fixes
+### How this version works
 
-* **No image cropping** — `object-fit: contain` keeps the complete photo visible.
-* **Each product keeps the same image-box size.**
-* **Multiple images don't overlap.**
-* **`‹` and `›` work independently for each product.**
-* Counter changes: `1 / 3 → 2 / 3 → 3 / 3`.
-* On the last image, clicking next returns to the first.
-* On the first image, clicking previous goes to the last.
-* It works without relying on `DOMContentLoaded` or attaching JavaScript listeners to every button.
+**Desktop:** hover over the product image → `‹` and `›` appear → click them to move exactly one photo.
 
-One thing to note: because your photos may have different proportions, **some empty background around a photo is normal with `contain`**. That's what prevents the actual clothing/product from being cut.
+**Mobile:** swipe the product image left/right, or tap the arrows.
+
+**Images:** the complete uploaded image stays visible. It uses the image's natural proportions, so **no cropping and no artificial zooming**.
+
+The important change is that we're no longer trying to manually switch `display: none/block` between images. The browser itself handles the horizontal scrolling, which is much more reliable.
