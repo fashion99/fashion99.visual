@@ -1,81 +1,558 @@
-<div class="results-heading"><div class="product-filters"><a class="{% if status == 'active' %}selected{% endif %}" href="?status=active">Active</a>{% if user.is_authenticated %}<a class="{% if status == 'inactive' %}selected{% endif %}" href="?status=inactive">Inactive</a><a class="{% if status == 'all' %}selected{% endif %}" href="?status=all">All</a>{% endif %}</div><span>{{ products|length }} result{{ products|length|pluralize }}</span></div>
+
+<div class="results-heading">
+    <div class="product-filters">
+        <a class="{% if status == 'active' %}selected{% endif %}" href="?status=active">Active</a>
+
+        {% if user.is_authenticated %}
+            <a class="{% if status == 'inactive' %}selected{% endif %}" href="?status=inactive">Inactive</a>
+            <a class="{% if status == 'all' %}selected{% endif %}" href="?status=all">All</a>
+        {% endif %}
+    </div>
+
+    <span>
+        {{ products|length }} result{{ products|length|pluralize }}
+    </span>
+</div>
+
 
 <div class="product-grid">
+
 {% for product in products %}
+
     <article class="product-card">
-        <div class="product-images">
-            {% for image in product.images.all %}
-                <img src="{{ image.image.url }}" alt="{{ product.name }} image {{ forloop.counter }}">
-            {% empty %}
+
+        <!-- PRODUCT IMAGE GALLERY -->
+        <div class="product-images" data-gallery>
+
+            {% if product.images.all %}
+
+                {% for image in product.images.all %}
+
+                    <img
+                        src="{{ image.image.url }}"
+                        alt="{{ product.name }} image {{ forloop.counter }}"
+                        class="product-gallery-image {% if forloop.first %}active{% endif %}"
+                        loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                    >
+
+                {% empty %}
+
+                    <div class="image-placeholder" aria-label="No product image">
+                        <span>F99</span>
+                    </div>
+
+                {% endfor %}
+
+                {% if product.images.count > 1 %}
+
+                    <button
+                        type="button"
+                        class="gallery-button gallery-prev"
+                        aria-label="Previous image"
+                    >
+                        ‹
+                    </button>
+
+                    <button
+                        type="button"
+                        class="gallery-button gallery-next"
+                        aria-label="Next image"
+                    >
+                        ›
+                    </button>
+
+                    <div class="gallery-counter">
+                        <span class="current-image">1</span>
+                        /
+                        <span class="total-images">{{ product.images.count }}</span>
+                    </div>
+
+                {% endif %}
+
+            {% else %}
+
                 <div class="image-placeholder" aria-label="No product image">
                     <span>F99</span>
                 </div>
-            {% endfor %}
+
+            {% endif %}
+
         </div>
 
 
-    <div class="product-info">
-        <p class="product-code">{{ product.code }}</p>
-        <h3>{{ product.name }}</h3>
-        <p class="product-price">{{ product.price }}</p>
-        <p class="product-stock">{{ product.stock_quantity }} in stock</p>
+        <!-- PRODUCT INFORMATION -->
+        <div class="product-info">
 
-        {% if user.is_authenticated %}
-            <div class="product-actions">
-                {% if user.is_admin_user or user.can_edit_products %}
-                    <a class="product-action" href="{% url 'products:edit' product.pk %}">Edit</a>
-                {% endif %}
+            <p class="product-code">
+                {{ product.code }}
+            </p>
 
-                {% if user.is_admin_user or user.can_manage_stock %}
-                    <a class="product-action" href="{% url 'products:stock' product.pk %}">Stock</a>
-                {% endif %}
+            <h3>
+                {{ product.name }}
+            </h3>
 
-                {% if user.is_admin_user or user.can_delete_products %}
-                    <form method="post" action="{% url 'products:delete' product.pk %}">
-                        {% csrf_token %}
-                        <button class="product-action product-delete" type="submit">Delete</button>
-                    </form>
-                {% endif %}
-            </div>
-        {% endif %}
+            <p class="product-price">
+                {{ product.price }}
+            </p>
+
+            <p class="product-stock">
+                {{ product.stock_quantity }} in stock
+            </p>
+
+
+            {% if user.is_authenticated %}
+
+                <div class="product-actions">
+
+                    {% if user.is_admin_user or user.can_edit_products %}
+                        <a
+                            class="product-action"
+                            href="{% url 'products:edit' product.pk %}"
+                        >
+                            Edit
+                        </a>
+                    {% endif %}
+
+
+                    {% if user.is_admin_user or user.can_manage_stock %}
+                        <a
+                            class="product-action"
+                            href="{% url 'products:stock' product.pk %}"
+                        >
+                            Stock
+                        </a>
+                    {% endif %}
+
+
+                    {% if user.is_admin_user or user.can_delete_products %}
+
+                        <form
+                            method="post"
+                            action="{% url 'products:delete' product.pk %}"
+                        >
+                            {% csrf_token %}
+
+                            <button
+                                class="product-action product-delete"
+                                type="submit"
+                            >
+                                Delete
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </article>
+
+
+{% empty %}
+
+    <div class="empty-state">
+        <strong>No products found.</strong>
+        <span>Try a different name or product code.</span>
     </div>
-</article>
 
-
-{% empty %} <div class="empty-state"> <strong>No products found.</strong> <span>Try a different name or product code.</span> </div>
 {% endfor %}
 
 </div>
 
+
+
 <style>
-/* Keep the existing product grid and card placement.
-   Only standardize the image area and reduce card spacing. */
+
+/* =========================================================
+   PRODUCT GRID
+   ========================================================= */
 
 .product-grid {
     gap: 12px !important;
 }
 
+
+/* =========================================================
+   PRODUCT IMAGE AREA
+   Every card gets exactly the same image height
+   ========================================================= */
+
 .product-images {
     width: 100%;
     aspect-ratio: 4 / 5;
+    position: relative;
     overflow: hidden;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
+    background: #f8f8f8;
+    border-radius: 8px;
 }
 
-.product-images img {
+
+/* =========================================================
+   PRODUCT IMAGES
+   Only one image is visible at a time
+   ========================================================= */
+
+.product-gallery-image {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
     width: 100%;
     height: 100%;
+
     object-fit: contain;
+
+    display: none;
+}
+
+
+/* Currently selected image */
+
+.product-gallery-image.active {
     display: block;
 }
+
+
+/* =========================================================
+   IMAGE PLACEHOLDER
+   ========================================================= */
 
 .image-placeholder {
     width: 100%;
     height: 100%;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
+    background: #f8f8f8;
 }
+
+.image-placeholder span {
+    font-size: 28px;
+    font-weight: 700;
+    opacity: 0.35;
+}
+
+
+/* =========================================================
+   PREVIOUS / NEXT BUTTONS
+   ========================================================= */
+
+.gallery-button {
+    position: absolute;
+
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+
+    font-size: 25px;
+    line-height: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    z-index: 5;
+
+    opacity: 0;
+    transition: opacity 0.2s ease,
+                background 0.2s ease;
+}
+
+
+/* Show buttons when hovering image */
+
+.product-images:hover .gallery-button {
+    opacity: 1;
+}
+
+
+/* Previous */
+
+.gallery-prev {
+    left: 8px;
+}
+
+
+/* Next */
+
+.gallery-next {
+    right: 8px;
+}
+
+
+/* Button hover */
+
+.gallery-button:hover {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+
+/* =========================================================
+   IMAGE COUNTER
+   Example: 1 / 4
+   ========================================================= */
+
+.gallery-counter {
+    position: absolute;
+
+    right: 8px;
+    bottom: 8px;
+
+    padding: 4px 9px;
+
+    border-radius: 12px;
+
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+
+    font-size: 12px;
+    font-weight: 500;
+
+    z-index: 5;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .product-images {
+        aspect-ratio: 4 / 5;
+        border-radius: 6px;
+    }
+
+    .gallery-button {
+        width: 30px;
+        height: 30px;
+
+        font-size: 21px;
+
+        opacity: 0.85;
+    }
+
+    .gallery-prev {
+        left: 6px;
+    }
+
+    .gallery-next {
+        right: 6px;
+    }
+
+    .gallery-counter {
+        right: 6px;
+        bottom: 6px;
+
+        font-size: 11px;
+        padding: 3px 7px;
+    }
+
+}
+
+
+/* =========================================================
+   TOUCH DEVICES
+   Keep navigation buttons visible on mobile
+   ========================================================= */
+
+@media (hover: none) {
+
+    .gallery-button {
+        opacity: 0.8;
+    }
+
+}
+
 </style>
+
+
+
+<script>
+
+/* =========================================================
+   PRODUCT IMAGE GALLERY
+   ========================================================= */
+
+document.querySelectorAll('[data-gallery]').forEach(function(gallery) {
+
+    const images = gallery.querySelectorAll('.product-gallery-image');
+
+    const previousButton = gallery.querySelector('.gallery-prev');
+    const nextButton = gallery.querySelector('.gallery-next');
+
+    const currentImageElement =
+        gallery.querySelector('.current-image');
+
+    if (images.length <= 1) {
+        return;
+    }
+
+
+    let currentIndex = 0;
+
+
+    /* -----------------------------------------------------
+       Show selected image
+       ----------------------------------------------------- */
+
+    function showImage(index) {
+
+        if (index < 0) {
+            index = images.length - 1;
+        }
+
+        if (index >= images.length) {
+            index = 0;
+        }
+
+        currentIndex = index;
+
+
+        images.forEach(function(image, imageIndex) {
+
+            image.classList.toggle(
+                'active',
+                imageIndex === currentIndex
+            );
+
+        });
+
+
+        if (currentImageElement) {
+
+            currentImageElement.textContent =
+                currentIndex + 1;
+
+        }
+
+    }
+
+
+    /* -----------------------------------------------------
+       Previous image
+       ----------------------------------------------------- */
+
+    if (previousButton) {
+
+        previousButton.addEventListener('click', function(event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            showImage(currentIndex - 1);
+
+        });
+
+    }
+
+
+    /* -----------------------------------------------------
+       Next image
+       ----------------------------------------------------- */
+
+    if (nextButton) {
+
+        nextButton.addEventListener('click', function(event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            showImage(currentIndex + 1);
+
+        });
+
+    }
+
+
+    /* -----------------------------------------------------
+       Swipe support for mobile
+       ----------------------------------------------------- */
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+
+    gallery.addEventListener(
+        'touchstart',
+        function(event) {
+
+            touchStartX =
+                event.changedTouches[0].screenX;
+
+        },
+        { passive: true }
+    );
+
+
+    gallery.addEventListener(
+        'touchend',
+        function(event) {
+
+            touchEndX =
+                event.changedTouches[0].screenX;
+
+            const swipeDistance =
+                touchEndX - touchStartX;
+
+
+            /* Swipe left = next */
+
+            if (swipeDistance < -40) {
+
+                showImage(currentIndex + 1);
+
+            }
+
+
+            /* Swipe right = previous */
+
+            else if (swipeDistance > 40) {
+
+                showImage(currentIndex - 1);
+
+            }
+
+        },
+        { passive: true }
+    );
+
+});
+
+</script>
+
+
+This changes the behavior to:
+
+**1 image**
+→ normal single product image.
+
+**2–10+ images**
+→ only one image is shown at a time, with `‹` and `›` navigation and `1 / 4`, `2 / 4`, etc.
+
+**Mobile**
+→ you can also **swipe left/right** through the product photos.
+
+Most importantly, **multiple images will no longer stack inside the card and make the layout messy**.
