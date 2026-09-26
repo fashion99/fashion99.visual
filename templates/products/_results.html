@@ -607,12 +607,3 @@ function scrollProductGallery(button, direction) {
 </script>
 
 
-### How this version works
-
-**Desktop:** hover over the product image → `‹` and `›` appear → click them to move exactly one photo.
-
-**Mobile:** swipe the product image left/right, or tap the arrows.
-
-**Images:** the complete uploaded image stays visible. It uses the image's natural proportions, so **no cropping and no artificial zooming**.
-
-The important change is that we're no longer trying to manually switch `display: none/block` between images. The browser itself handles the horizontal scrolling, which is much more reliable.
