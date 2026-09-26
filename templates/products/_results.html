@@ -1,11 +1,18 @@
 
 <div class="results-heading">
     <div class="product-filters">
-        <a class="{% if status == 'active' %}selected{% endif %}" href="?status=active">Active</a>
+        <a class="{% if status == 'active' %}selected{% endif %}" href="?status=active">
+            Active
+        </a>
 
         {% if user.is_authenticated %}
-            <a class="{% if status == 'inactive' %}selected{% endif %}" href="?status=inactive">Inactive</a>
-            <a class="{% if status == 'all' %}selected{% endif %}" href="?status=all">All</a>
+            <a class="{% if status == 'inactive' %}selected{% endif %}" href="?status=inactive">
+                Inactive
+            </a>
+
+            <a class="{% if status == 'all' %}selected{% endif %}" href="?status=all">
+                All
+            </a>
         {% endif %}
     </div>
 
@@ -19,145 +26,143 @@
 
 {% for product in products %}
 
-    <article class="product-card">
+<article class="product-card">
 
-        <!-- PRODUCT IMAGE GALLERY -->
-        <div class="product-images" data-gallery>
+    <!-- PRODUCT IMAGE GALLERY -->
+    <div class="product-images">
 
-            {% if product.images.all %}
+        {% for image in product.images.all %}
 
-                {% for image in product.images.all %}
+            <img
+                src="{{ image.image.url }}"
+                alt="{{ product.name }} image {{ forloop.counter }}"
+                class="gallery-image {% if forloop.first %}gallery-active{% endif %}"
+            >
 
-                    <img
-                        src="{{ image.image.url }}"
-                        alt="{{ product.name }} image {{ forloop.counter }}"
-                        class="product-gallery-image {% if forloop.first %}active{% endif %}"
-                        loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
-                    >
+        {% empty %}
 
-                {% empty %}
+            <div class="image-placeholder">
+                <span>F99</span>
+            </div>
 
-                    <div class="image-placeholder" aria-label="No product image">
-                        <span>F99</span>
-                    </div>
+        {% endfor %}
 
-                {% endfor %}
 
-                {% if product.images.count > 1 %}
+        {% if product.images.count > 1 %}
+
+            <!-- PREVIOUS -->
+            <button
+                type="button"
+                class="gallery-btn gallery-prev"
+                aria-label="Previous image"
+                onclick="changeProductImage(this, -1)"
+            >
+                ‹
+            </button>
+
+
+            <!-- NEXT -->
+            <button
+                type="button"
+                class="gallery-btn gallery-next"
+                aria-label="Next image"
+                onclick="changeProductImage(this, 1)"
+            >
+                ›
+            </button>
+
+
+            <!-- COUNTER -->
+            <div class="gallery-counter">
+                <span class="gallery-current">1</span>
+                /
+                <span>{{ product.images.count }}</span>
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- PRODUCT INFORMATION -->
+    <div class="product-info">
+
+        <p class="product-code">
+            {{ product.code }}
+        </p>
+
+        <h3>
+            {{ product.name }}
+        </h3>
+
+        <p class="product-price">
+            {{ product.price }}
+        </p>
+
+        <p class="product-stock">
+            {{ product.stock_quantity }} in stock
+        </p>
+
+
+        {% if user.is_authenticated %}
+
+        <div class="product-actions">
+
+            {% if user.is_admin_user or user.can_edit_products %}
+                <a
+                    class="product-action"
+                    href="{% url 'products:edit' product.pk %}"
+                >
+                    Edit
+                </a>
+            {% endif %}
+
+
+            {% if user.is_admin_user or user.can_manage_stock %}
+                <a
+                    class="product-action"
+                    href="{% url 'products:stock' product.pk %}"
+                >
+                    Stock
+                </a>
+            {% endif %}
+
+
+            {% if user.is_admin_user or user.can_delete_products %}
+
+                <form
+                    method="post"
+                    action="{% url 'products:delete' product.pk %}"
+                >
+
+                    {% csrf_token %}
 
                     <button
-                        type="button"
-                        class="gallery-button gallery-prev"
-                        aria-label="Previous image"
+                        class="product-action product-delete"
+                        type="submit"
                     >
-                        ‹
+                        Delete
                     </button>
 
-                    <button
-                        type="button"
-                        class="gallery-button gallery-next"
-                        aria-label="Next image"
-                    >
-                        ›
-                    </button>
-
-                    <div class="gallery-counter">
-                        <span class="current-image">1</span>
-                        /
-                        <span class="total-images">{{ product.images.count }}</span>
-                    </div>
-
-                {% endif %}
-
-            {% else %}
-
-                <div class="image-placeholder" aria-label="No product image">
-                    <span>F99</span>
-                </div>
+                </form>
 
             {% endif %}
 
         </div>
 
+        {% endif %}
 
-        <!-- PRODUCT INFORMATION -->
-        <div class="product-info">
+    </div>
 
-            <p class="product-code">
-                {{ product.code }}
-            </p>
-
-            <h3>
-                {{ product.name }}
-            </h3>
-
-            <p class="product-price">
-                {{ product.price }}
-            </p>
-
-            <p class="product-stock">
-                {{ product.stock_quantity }} in stock
-            </p>
-
-
-            {% if user.is_authenticated %}
-
-                <div class="product-actions">
-
-                    {% if user.is_admin_user or user.can_edit_products %}
-                        <a
-                            class="product-action"
-                            href="{% url 'products:edit' product.pk %}"
-                        >
-                            Edit
-                        </a>
-                    {% endif %}
-
-
-                    {% if user.is_admin_user or user.can_manage_stock %}
-                        <a
-                            class="product-action"
-                            href="{% url 'products:stock' product.pk %}"
-                        >
-                            Stock
-                        </a>
-                    {% endif %}
-
-
-                    {% if user.is_admin_user or user.can_delete_products %}
-
-                        <form
-                            method="post"
-                            action="{% url 'products:delete' product.pk %}"
-                        >
-                            {% csrf_token %}
-
-                            <button
-                                class="product-action product-delete"
-                                type="submit"
-                            >
-                                Delete
-                            </button>
-
-                        </form>
-
-                    {% endif %}
-
-                </div>
-
-            {% endif %}
-
-        </div>
-
-    </article>
+</article>
 
 
 {% empty %}
 
-    <div class="empty-state">
-        <strong>No products found.</strong>
-        <span>Try a different name or product code.</span>
-    </div>
+<div class="empty-state">
+    <strong>No products found.</strong>
+    <span>Try a different name or product code.</span>
+</div>
 
 {% endfor %}
 
@@ -177,14 +182,18 @@
 
 
 /* =========================================================
-   PRODUCT IMAGE AREA
-   Every card gets exactly the same image height
+   IMAGE AREA
    ========================================================= */
 
 .product-images {
+
     width: 100%;
+
+    /* Same height for every product */
     aspect-ratio: 4 / 5;
+
     position: relative;
+
     overflow: hidden;
 
     display: flex;
@@ -192,42 +201,59 @@
     justify-content: center;
 
     background: #f8f8f8;
+
     border-radius: 8px;
 }
 
 
 /* =========================================================
-   PRODUCT IMAGES
-   Only one image is visible at a time
+   IMAGES
+   IMPORTANT:
+   contain = NEVER CROP THE PRODUCT PHOTO
    ========================================================= */
 
-.product-gallery-image {
+.gallery-image {
+
     position: absolute;
 
-    top: 0;
-    left: 0;
+    inset: 0;
 
     width: 100%;
     height: 100%;
 
+    /*
+       This keeps the COMPLETE image visible.
+       Nothing will be cut.
+    */
     object-fit: contain;
 
+    /*
+       Small padding prevents the photo
+       from touching the edges.
+    */
+    padding: 6px;
+
+    box-sizing: border-box;
+
     display: none;
+
+    background: #f8f8f8;
 }
 
 
-/* Currently selected image */
+/* Only current image is visible */
 
-.product-gallery-image.active {
+.gallery-image.gallery-active {
     display: block;
 }
 
 
 /* =========================================================
-   IMAGE PLACEHOLDER
+   PLACEHOLDER
    ========================================================= */
 
 .image-placeholder {
+
     width: 100%;
     height: 100%;
 
@@ -238,53 +264,56 @@
     background: #f8f8f8;
 }
 
+
 .image-placeholder span {
+
     font-size: 28px;
+
     font-weight: 700;
+
     opacity: 0.35;
 }
 
 
 /* =========================================================
-   PREVIOUS / NEXT BUTTONS
+   GALLERY BUTTONS
    ========================================================= */
 
-.gallery-button {
+.gallery-btn {
+
     position: absolute;
 
     top: 50%;
+
     transform: translateY(-50%);
 
     width: 34px;
     height: 34px;
 
     border: none;
+
     border-radius: 50%;
 
     background: rgba(0, 0, 0, 0.55);
+
     color: white;
 
     font-size: 25px;
+
     line-height: 1;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
     cursor: pointer;
 
-    z-index: 5;
+    z-index: 20;
 
-    opacity: 0;
-    transition: opacity 0.2s ease,
-                background 0.2s ease;
-}
-
-
-/* Show buttons when hovering image */
-
-.product-images:hover .gallery-button {
-    opacity: 1;
+    transition:
+        background 0.2s ease,
+        opacity 0.2s ease;
 }
 
 
@@ -302,35 +331,37 @@
 }
 
 
-/* Button hover */
+/* Hover */
 
-.gallery-button:hover {
-    background: rgba(0, 0, 0, 0.75);
+.gallery-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
 }
 
 
 /* =========================================================
    IMAGE COUNTER
-   Example: 1 / 4
    ========================================================= */
 
 .gallery-counter {
+
     position: absolute;
 
     right: 8px;
     bottom: 8px;
+
+    z-index: 20;
 
     padding: 4px 9px;
 
     border-radius: 12px;
 
     background: rgba(0, 0, 0, 0.6);
+
     color: white;
 
     font-size: 12px;
-    font-weight: 500;
 
-    z-index: 5;
+    line-height: 1;
 }
 
 
@@ -345,43 +376,39 @@
         border-radius: 6px;
     }
 
-    .gallery-button {
+
+    .gallery-image {
+        padding: 5px;
+    }
+
+
+    .gallery-btn {
+
         width: 30px;
         height: 30px;
 
         font-size: 21px;
-
-        opacity: 0.85;
     }
+
 
     .gallery-prev {
         left: 6px;
     }
 
+
     .gallery-next {
         right: 6px;
     }
 
+
     .gallery-counter {
+
         right: 6px;
         bottom: 6px;
 
         font-size: 11px;
-        padding: 3px 7px;
-    }
 
-}
-
-
-/* =========================================================
-   TOUCH DEVICES
-   Keep navigation buttons visible on mobile
-   ========================================================= */
-
-@media (hover: none) {
-
-    .gallery-button {
-        opacity: 0.8;
+        padding: 4px 7px;
     }
 
 }
@@ -393,166 +420,109 @@
 <script>
 
 /* =========================================================
-   PRODUCT IMAGE GALLERY
+   CHANGE PRODUCT IMAGE
    ========================================================= */
 
-document.querySelectorAll('[data-gallery]').forEach(function(gallery) {
+function changeProductImage(button, direction) {
 
-    const images = gallery.querySelectorAll('.product-gallery-image');
+    /*
+     * Find the gallery belonging to THIS product.
+     * This is important because every product has
+     * its own separate gallery.
+     */
 
-    const previousButton = gallery.querySelector('.gallery-prev');
-    const nextButton = gallery.querySelector('.gallery-next');
+    const gallery = button.closest('.product-images');
 
-    const currentImageElement =
-        gallery.querySelector('.current-image');
-
-    if (images.length <= 1) {
+    if (!gallery) {
         return;
     }
 
 
+    /* Get all images in this product */
+
+    const images =
+        gallery.querySelectorAll('.gallery-image');
+
+
+    if (!images.length) {
+        return;
+    }
+
+
+    /* Find current image */
+
     let currentIndex = 0;
 
+    images.forEach(function(image, index) {
 
-    /* -----------------------------------------------------
-       Show selected image
-       ----------------------------------------------------- */
-
-    function showImage(index) {
-
-        if (index < 0) {
-            index = images.length - 1;
+        if (image.classList.contains('gallery-active')) {
+            currentIndex = index;
         }
 
-        if (index >= images.length) {
-            index = 0;
-        }
-
-        currentIndex = index;
+    });
 
 
-        images.forEach(function(image, imageIndex) {
+    /* Calculate next image */
 
-            image.classList.toggle(
-                'active',
-                imageIndex === currentIndex
-            );
-
-        });
+    let newIndex =
+        currentIndex + direction;
 
 
-        if (currentImageElement) {
+    /* Go from last → first */
 
-            currentImageElement.textContent =
-                currentIndex + 1;
-
-        }
-
+    if (newIndex >= images.length) {
+        newIndex = 0;
     }
 
 
-    /* -----------------------------------------------------
-       Previous image
-       ----------------------------------------------------- */
+    /* Go from first → last */
 
-    if (previousButton) {
-
-        previousButton.addEventListener('click', function(event) {
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            showImage(currentIndex - 1);
-
-        });
-
+    if (newIndex < 0) {
+        newIndex = images.length - 1;
     }
 
 
-    /* -----------------------------------------------------
-       Next image
-       ----------------------------------------------------- */
+    /* Hide all images */
 
-    if (nextButton) {
+    images.forEach(function(image) {
 
-        nextButton.addEventListener('click', function(event) {
+        image.classList.remove('gallery-active');
 
-            event.preventDefault();
-            event.stopPropagation();
+    });
 
-            showImage(currentIndex + 1);
 
-        });
+    /* Show selected image */
+
+    images[newIndex].classList.add('gallery-active');
+
+
+    /* Update counter */
+
+    const counter =
+        gallery.querySelector('.gallery-current');
+
+
+    if (counter) {
+
+        counter.textContent =
+            newIndex + 1;
 
     }
 
-
-    /* -----------------------------------------------------
-       Swipe support for mobile
-       ----------------------------------------------------- */
-
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-
-    gallery.addEventListener(
-        'touchstart',
-        function(event) {
-
-            touchStartX =
-                event.changedTouches[0].screenX;
-
-        },
-        { passive: true }
-    );
-
-
-    gallery.addEventListener(
-        'touchend',
-        function(event) {
-
-            touchEndX =
-                event.changedTouches[0].screenX;
-
-            const swipeDistance =
-                touchEndX - touchStartX;
-
-
-            /* Swipe left = next */
-
-            if (swipeDistance < -40) {
-
-                showImage(currentIndex + 1);
-
-            }
-
-
-            /* Swipe right = previous */
-
-            else if (swipeDistance > 40) {
-
-                showImage(currentIndex - 1);
-
-            }
-
-        },
-        { passive: true }
-    );
-
-});
+}
 
 </script>
 
 
-This changes the behavior to:
+### What this fixes
 
-**1 image**
-→ normal single product image.
+* **No image cropping** — `object-fit: contain` keeps the complete photo visible.
+* **Each product keeps the same image-box size.**
+* **Multiple images don't overlap.**
+* **`‹` and `›` work independently for each product.**
+* Counter changes: `1 / 3 → 2 / 3 → 3 / 3`.
+* On the last image, clicking next returns to the first.
+* On the first image, clicking previous goes to the last.
+* It works without relying on `DOMContentLoaded` or attaching JavaScript listeners to every button.
 
-**2–10+ images**
-→ only one image is shown at a time, with `‹` and `›` navigation and `1 / 4`, `2 / 4`, etc.
-
-**Mobile**
-→ you can also **swipe left/right** through the product photos.
-
-Most importantly, **multiple images will no longer stack inside the card and make the layout messy**.
+One thing to note: because your photos may have different proportions, **some empty background around a photo is normal with `contain`**. That's what prevents the actual clothing/product from being cut.
